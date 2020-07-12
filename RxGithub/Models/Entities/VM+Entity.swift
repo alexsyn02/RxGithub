@@ -16,3 +16,15 @@ protocol VMInputOutputProtocol: VMProtocol {
     
     func transform(_ input: Input) -> Output
 }
+
+class RxViewModel: VMProtocol {
+    var bag = DisposeBag()
+}
+
+class ModelInitializableVM<Entity: Any>: RxViewModel {
+    var model: Entity!
+    
+   required init(model: Entity) {
+        self.model = model
+    }
+}

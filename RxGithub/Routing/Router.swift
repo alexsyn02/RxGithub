@@ -28,12 +28,15 @@ class Router {
         
         window.rootViewController = rootNavigationVC
         window.makeKeyAndVisible()
+        
         return window
     }
     
     func present(_ viewController: UIViewController, animated: Bool = true, completion: (() -> Void)? = nil) {
         if let topController = topViewController() {
-            topController.present(viewController, animated: animated, completion: completion)
+            DispatchQueue.main.async {
+                topController.present(viewController, animated: animated, completion: completion)
+            }
         }
     }
     
@@ -41,11 +44,16 @@ class Router {
         let backItem = UIBarButtonItem()
         backItem.title = ""
         viewController.navigationItem.backBarButtonItem = backItem
-        rootNavigationVC.pushViewController(viewController, animated: animated)
+        
+        DispatchQueue.main.async { [weak self] in
+            self?.rootNavigationVC.pushViewController(viewController, animated: animated)
+        }
     }
     
     func pop(animated: Bool = true) {
-        rootNavigationVC.popViewController(animated: animated)
+        DispatchQueue.main.async { [weak self] in
+            self?.rootNavigationVC.popViewController(animated: animated)
+        }
     }
     
     func popToViewController(type: AnyClass, completion: ((_ success: Bool) -> ())? = nil) {
@@ -61,7 +69,9 @@ class Router {
     }
     
     func popToRoot(animated: Bool = true) {
-        self.rootNavigationVC.popToRootViewController(animated: animated)
+        DispatchQueue.main.async { [weak self] in
+            self?.rootNavigationVC.popToRootViewController(animated: animated)
+        }
     }
     
     func topViewController(base: UIViewController? = nil, ignoreModal: Bool = false) -> UIViewController? {

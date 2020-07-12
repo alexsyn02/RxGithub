@@ -43,13 +43,18 @@
                                     <constraint firstItem="TTr-Fc-4xZ" firstAttribute="leading" secondItem="Jjd-iw-cQU" secondAttribute="leading" constant="20" id="uRm-PD-3uu"/>
                                 </constraints>
                             </stackView>
+                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="7Dr-Of-dKO">
+                                <rect key="frame" x="188.5" y="504" width="37" height="37"/>
+                            </activityIndicatorView>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
+                            <constraint firstItem="7Dr-Of-dKO" firstAttribute="centerX" secondItem="4nd-AI-EM3" secondAttribute="centerX" id="1ce-qh-aXH"/>
                             <constraint firstItem="9Zl-Xc-nyW" firstAttribute="bottom" secondItem="Jjd-iw-cQU" secondAttribute="bottom" id="2x8-YL-kPc"/>
                             <constraint firstItem="Jjd-iw-cQU" firstAttribute="leading" secondItem="v3w-K9-wf6" secondAttribute="leading" id="68K-bm-WlZ"/>
                             <constraint firstItem="f8d-ol-lFT" firstAttribute="top" secondItem="9Zl-Xc-nyW" secondAttribute="top" constant="10" id="YPb-b1-zwv"/>
                             <constraint firstItem="Jjd-iw-cQU" firstAttribute="top" secondItem="f8d-ol-lFT" secondAttribute="bottom" constant="10" id="jdC-Tw-ImH"/>
+                            <constraint firstItem="7Dr-Of-dKO" firstAttribute="centerY" secondItem="4nd-AI-EM3" secondAttribute="centerY" id="lON-1z-EeR"/>
                             <constraint firstItem="9Zl-Xc-nyW" firstAttribute="trailing" secondItem="Jjd-iw-cQU" secondAttribute="trailing" id="pDu-9Z-nkU"/>
                             <constraint firstItem="f8d-ol-lFT" firstAttribute="centerX" secondItem="v3w-K9-wf6" secondAttribute="centerX" id="pZ3-rd-aWz"/>
                         </constraints>
@@ -58,6 +63,7 @@
                     <navigationItem key="navigationItem" title="Repositories" id="o5V-kE-Pax"/>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
+                        <outlet property="activityIndicator" destination="7Dr-Of-dKO" id="akM-Nv-0UP"/>
                         <outlet property="searchTextField" destination="TTr-Fc-4xZ" id="TcU-fE-4kA"/>
                         <outlet property="segmentedControl" destination="f8d-ol-lFT" id="FKX-4D-NxG"/>
                         <outlet property="tableView" destination="4nd-AI-EM3" id="nTS-B9-iBW"/>

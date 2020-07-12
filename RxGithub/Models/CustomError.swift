@@ -12,6 +12,7 @@ enum CustomError: LocalizedError {
     case responseError(statusCode: Int, description: String)
     case invalidURLError
     case parseError
+    case openURLError
     case unknownError
     
     var errorDescription: String? {
@@ -22,6 +23,8 @@ enum CustomError: LocalizedError {
             return "Invalid URL."
         case .parseError:
             return "Error during parsing."
+        case .openURLError:
+            return "There is no opportunity to open this repository on your phone."
         case .unknownError:
             return "Unknown error."
         }

@@ -17,6 +17,7 @@ class LoginVC: VMVC {
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
     
     private var vm: LoginVM { viewModel as! LoginVM }
+    private let viewWillAppearSubject = PublishSubject<Void>()
     
     override static func instantiate() -> Self {
         return UIStoryboard.login.instantiateVC(with: self)
@@ -31,6 +32,8 @@ class LoginVC: VMVC {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
+        viewWillAppearSubject.onNext(())
+        passwordTextField.text = nil
         navigationController?.setNavigationBarHidden(true, animated: false)
     }
     
@@ -43,7 +46,8 @@ class LoginVC: VMVC {
     private func bindViewModel() {
         let input = LoginVM.Input(username: usernameTextField.rx.text.orEmpty.asDriver(),
                                   password: passwordTextField.rx.text.orEmpty.asDriver(),
-                                  onSignIn: signInButton.rx.tap.asDriver())
+                                  onSignIn: signInButton.rx.tap.asDriver(),
+                                  viewWillAppearSubject: viewWillAppearSubject.asDriver(onErrorJustReturn: ()))
         
         let output = vm.transform(input)
         

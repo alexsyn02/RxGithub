@@ -38,12 +38,13 @@ class GithubService {
         return makeRequest(request)
     }
     
-    func searchRepositories(query: String, page: Int = 0, perPage: Int = 15) -> Single<SearchRepositoriesResponse> {
+    func searchRepositories(query: String, page: Int, perPage: Int = 15) -> Single<SearchRepositoriesResponse> {
         var urlComponents = URLComponents(string: Configuration.githubURL + "/search/repositories")!
         urlComponents.queryItems = [
             URLQueryItem(name: "q", value: query),
             URLQueryItem(name: "sort", value: "stars"),
             URLQueryItem(name: "order", value: "desc"),
+            URLQueryItem(name: "page", value: "\(page)"),
             URLQueryItem(name: "per_page", value: "\(perPage)"),
         ]
         
