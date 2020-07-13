@@ -23,6 +23,7 @@ class LoginVM: VMInputOutputProtocol {
         let isLoading: Driver<Bool>
     }
     
+    private let usernameRelay = BehaviorRelay<String>(value: "")
     private let passwordRelay = BehaviorRelay<String>(value: "")
     
     private let loader = ActivityIndicator()
@@ -34,12 +35,16 @@ class LoginVM: VMInputOutputProtocol {
             .drive(passwordRelay)
             .disposed(by: bag)
         
+        input.username
+            .drive(usernameRelay)
+            .disposed(by: bag)
+        
         input.password
             .drive(passwordRelay)
             .disposed(by: bag)
         
         let user = input.onSignIn
-            .withLatestFrom(Driver.combineLatest(input.username, passwordRelay.asDriver()))
+            .withLatestFrom(Driver.combineLatest(usernameRelay.asDriver(), passwordRelay.asDriver()))
             .flatMap { [weak self] tuple -> Driver<User> in
                 guard let self = self else { return .empty() }
                 let (username, password) = tuple
@@ -59,7 +64,10 @@ class LoginVM: VMInputOutputProtocol {
         }
         
         user
-            .drive(onNext: { user in
+            .drive(onNext: { [weak self] user in
+                guard let self = self else { return }
+                
+                KeychainService.set(username: self.usernameRelay.value, password: self.passwordRelay.value)
                 Router.shared.showRepositoryList()
                 print(user)
             })

@@ -6,11 +6,13 @@ target 'RxGithub' do
   use_frameworks!
 
   # Pods for RxGithub
+  pod 'KeychainSwift', '~> 19.0'
+  pod 'RealmSwift'
   pod 'RxSwift'
   pod 'RxCocoa'
   pod 'RxSwiftUtilities'
   pod 'RxFlow'
-  pod 'Realm'
+  pod 'RxRealm'
   pod 'SnapKit'
   pod 'SwiftyJSON'
 

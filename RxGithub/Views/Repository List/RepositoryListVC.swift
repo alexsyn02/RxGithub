@@ -18,7 +18,8 @@ class RepositoryListVC: VMVC {
     
     private var vm: RepositoryListVM { viewModel as! RepositoryListVM }
     
-    private let loadMoreRepositoriesRelay = BehaviorRelay<Bool>(value: false)
+    private let logoutSubject = PublishSubject<()>()
+    private let isLoadingRepositoriesRelay = BehaviorRelay<Bool>(value: false)
     
     override static func instantiate() -> Self {
         return UIStoryboard.repositoryList.instantiateVC(with: self)
@@ -66,22 +67,28 @@ class RepositoryListVC: VMVC {
             })
             .disposed(by: bag)
         
-        Driver.combineLatest(tableView.rx.contentOffset.asDriver(), loadMoreRepositoriesRelay.asDriver())
-            .filter { [weak self] offset, isLoaded in
+        Driver.combineLatest(tableView.rx.contentOffset.asDriver(), isLoadingRepositoriesRelay.asDriver())
+            .filter { [weak self] offset, isLoading in
                 let contentSizeHeight = (self?.tableView.contentSize ?? .zero).height
                 
-                guard !isLoaded, contentSizeHeight > 0 else { return false }
+                guard !isLoading, contentSizeHeight > 0 else { return false }
                 
                 return offset.y >= contentSizeHeight / 2
         }
         .map { _ in true }
-        .drive(loadMoreRepositoriesRelay)
+        .drive(isLoadingRepositoriesRelay)
         .disposed(by: bag)
         
+        let loadMoreRepositories = isLoadingRepositoriesRelay
+            .asDriver()
+            .filter { $0 }
+            .map { _ in () }
+        
         let input = RepositoryListVM.Input(searchQuery: query,
-                                           loadMoreRepositories: loadMoreRepositoriesRelay.asDriver(),
+                                           loadMoreRepositories: loadMoreRepositories,
                                            repositorySelectedAt: itemSelected,
-                                           segmentedControlIndex: segmentedControl.rx.selectedSegmentIndex.asDriver())
+                                           segmentedControlIndex: segmentedControl.rx.selectedSegmentIndex.asDriver(),
+                                           onLogout: logoutSubject.asDriver(onErrorJustReturn: ()))
         
         let output = vm.transform(input)
         
@@ -91,6 +98,12 @@ class RepositoryListVC: VMVC {
         }
         .disposed(by: bag)
         
+        output.isRepositoriesLoaded
+            .debounce(.milliseconds(500))
+            .map { false }
+            .drive(isLoadingRepositoriesRelay)
+            .disposed(by: bag)
+        
         output.isLoading
             .drive(activityIndicator.rx.isAnimating)
             .disposed(by: bag)
@@ -98,6 +111,6 @@ class RepositoryListVC: VMVC {
     
     @objc
     private func logOutTapped(_ sender: UIBarButtonItem) {
-        Router.shared.pop()
+        logoutSubject.onNext(())
     }
 }

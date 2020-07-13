@@ -22,7 +22,7 @@ class GithubService {
     
     private var bag = DisposeBag()
     
-    private func createAuthCredentials(username: String, password: String) -> String {
+    private func createAuthCredentials(username: String = KeychainService.username, password: String = KeychainService.password) -> String {
         return "Basic \("\(username):\(password)".data(using: .utf8)?.base64EncodedString() ?? "")"
     }
     
@@ -32,8 +32,6 @@ class GithubService {
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
         request.setValue(authCredentials, forHTTPHeaderField: "Authorization")
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
         
         return makeRequest(request)
     }
@@ -52,8 +50,10 @@ class GithubService {
             return .error(CustomError.invalidURLError)
         }
         
+        let authCredentials = self.createAuthCredentials()
         var request = URLRequest(url: url)
         request.httpMethod = "GET"
+        request.setValue(authCredentials, forHTTPHeaderField: "Authorization")
         
         return makeRequest(request)
     }
