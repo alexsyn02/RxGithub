@@ -55,12 +55,18 @@ class GithubService {
         request.httpMethod = "GET"
         request.setValue(authCredentials, forHTTPHeaderField: "Authorization")
         
-        return makeRequest(request)
+        let handleTask: (URLSessionTask) -> () = { TasksService.shared.add(task: $0, key: request) }
+        let handleResponseTask: (SearchRepositoriesResponse) -> () = { _ in TasksService.shared.remove(searchRepositoryRequest: request) }
+        
+        return makeRequest(request, handleTask: handleTask)
+            .do(onSuccess: handleResponseTask)
     }
     
-    func makeRequest<T: Codable>(_ request: URLRequest) -> Single<T> {
+    func makeRequest<T: Codable>(_ request: URLRequest, handleTask: ((URLSessionTask) -> ())? = nil) -> Single<T> {
         return Single<T>.create { single in
-            URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+            let task = URLSession.shared.dataTask(with: request) { [weak self] data, response, error in
+                TasksService.shared.remove(request: request)
+                
                 guard let self = self else { return single(.error(CustomError.unknownError)) }
                 
                 if let data = data {
@@ -79,7 +85,12 @@ class GithubService {
                 } else {
                     single(.error(CustomError.unknownError))
                 }
-            }.resume()
+            }
+            
+            handleTask?(task)
+            TasksService.shared.add(task: task, key: request)
+            
+            task.resume()
             
             return Disposables.create()
         }

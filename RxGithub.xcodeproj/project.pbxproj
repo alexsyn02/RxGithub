@@ -25,12 +25,14 @@
 		BD4925FA24B8A7F900BECA1E /* RepositoryListVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4925F924B8A7F900BECA1E /* RepositoryListVC.swift */; };
 		BD4925FC24B8A7FF00BECA1E /* RepositoryListVC.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BD4925FB24B8A7FF00BECA1E /* RepositoryListVC.storyboard */; };
 		BD4925FE24B8A80500BECA1E /* RepositoryListVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4925FD24B8A80500BECA1E /* RepositoryListVM.swift */; };
+		BD9CD92624BCCBC2005A2973 /* TasksService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9CD92524BCCBC2005A2973 /* TasksService.swift */; };
 		BDA0250F24B84AC00001A31A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA0250E24B84AC00001A31A /* AppDelegate.swift */; };
 		BDA0251124B84AC00001A31A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA0251024B84AC00001A31A /* SceneDelegate.swift */; };
 		BDA0251324B84AC00001A31A /* LoginVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA0251224B84AC00001A31A /* LoginVC.swift */; };
 		BDA0251624B84AC00001A31A /* LoginVC.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BDA0251424B84AC00001A31A /* LoginVC.storyboard */; };
 		BDA0251824B84AC20001A31A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BDA0251724B84AC20001A31A /* Assets.xcassets */; };
 		BDA0251B24B84AC20001A31A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BDA0251924B84AC20001A31A /* LaunchScreen.storyboard */; };
+		BDB8FB0024BDD7B0006C4E55 /* SearchRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDB8FAFF24BDD7B0006C4E55 /* SearchRepository.swift */; };
 		BDC5F64624B853B000D9D1B9 /* GithubService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC5F64524B853B000D9D1B9 /* GithubService.swift */; };
 		BDC5F64824B854A200D9D1B9 /* Configuration.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDC5F64724B854A200D9D1B9 /* Configuration.swift */; };
 		BDCFA69224B87870006CF9F6 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDCFA69124B87870006CF9F6 /* User.swift */; };
@@ -62,6 +64,7 @@
 		BD4925F924B8A7F900BECA1E /* RepositoryListVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryListVC.swift; sourceTree = "<group>"; };
 		BD4925FB24B8A7FF00BECA1E /* RepositoryListVC.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = RepositoryListVC.storyboard; sourceTree = "<group>"; };
 		BD4925FD24B8A80500BECA1E /* RepositoryListVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryListVM.swift; sourceTree = "<group>"; };
+		BD9CD92524BCCBC2005A2973 /* TasksService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksService.swift; sourceTree = "<group>"; };
 		BDA0250B24B84AC00001A31A /* RxGithub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RxGithub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDA0250E24B84AC00001A31A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		BDA0251024B84AC00001A31A /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -70,6 +73,7 @@
 		BDA0251724B84AC20001A31A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		BDA0251A24B84AC20001A31A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		BDA0251C24B84AC20001A31A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		BDB8FAFF24BDD7B0006C4E55 /* SearchRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchRepository.swift; sourceTree = "<group>"; };
 		BDC5F64524B853B000D9D1B9 /* GithubService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GithubService.swift; sourceTree = "<group>"; };
 		BDC5F64724B854A200D9D1B9 /* Configuration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Configuration.swift; sourceTree = "<group>"; };
 		BDCFA69124B87870006CF9F6 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -217,6 +221,7 @@
 				BDCFA69124B87870006CF9F6 /* User.swift */,
 				BD3FD0C224BA8E53001FA641 /* SearchRepositoriesResponse.swift */,
 				BD3FD0C424BA8E9A001FA641 /* Repository.swift */,
+				BDB8FAFF24BDD7B0006C4E55 /* SearchRepository.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -236,6 +241,7 @@
 			children = (
 				BDE2866A24BBEAB300E521AE /* API */,
 				BDE2866824BBE9AE00E521AE /* KeychainService.swift */,
+				BD9CD92524BCCBC2005A2973 /* TasksService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -401,6 +407,7 @@
 				BDE38D6E24BB20E9001D1F53 /* Reusable.swift in Sources */,
 				BD4925F724B8929700BECA1E /* UIStoryboard+Extension.swift in Sources */,
 				BDE38D6824BB16E1001D1F53 /* RepositoryCellVM.swift in Sources */,
+				BD9CD92624BCCBC2005A2973 /* TasksService.swift in Sources */,
 				BD3FD0BD24B9B97C001FA641 /* Router+Alerts.swift in Sources */,
 				BD4925EA24B889EB00BECA1E /* MainButton.swift in Sources */,
 				BD296C4424B8BB1600682993 /* Router.swift in Sources */,
@@ -411,6 +418,7 @@
 				BDE2866924BBE9AE00E521AE /* KeychainService.swift in Sources */,
 				BD3FD0BF24B9C087001FA641 /* GithubError.swift in Sources */,
 				BDA0250F24B84AC00001A31A /* AppDelegate.swift in Sources */,
+				BDB8FB0024BDD7B0006C4E55 /* SearchRepository.swift in Sources */,
 				BDA0251124B84AC00001A31A /* SceneDelegate.swift in Sources */,
 				BD4925FE24B8A80500BECA1E /* RepositoryListVM.swift in Sources */,
 			);

@@ -34,6 +34,7 @@ class Repository: Codable {
 //    let watchers: Int?
 //    let defaultBranch: String?
     let score: Double?
+    var isViewed: Bool?
     
     init(repositoryRealm object: RepositoryRealm) {
         self.id = object.id
@@ -41,6 +42,13 @@ class Repository: Codable {
         self.htmlUrl = object.htmlUrl
         self.description = object.repositoryDescription
         self.score = object.score
+        self.isViewed = false
+    }
+}
+
+extension Repository: Equatable {
+    static func == (lhs: Repository, rhs: Repository) -> Bool {
+        return lhs.id == rhs.id
     }
 }
 
@@ -69,6 +77,10 @@ class RepositoryRealm: Object {
 //    dynamic var watchers: Int?
 //    dynamic var defaultBranch: String?
     @objc dynamic var score: Double = 0
+
+    override class func primaryKey() -> String? {
+        return "id"
+    }
     
     required init() {}
     

@@ -30,7 +30,7 @@
                                         <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                         <textInputTraits key="textInputTraits"/>
                                     </textField>
-                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="4nd-AI-EM3">
+                                    <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" keyboardDismissMode="onDrag" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="4nd-AI-EM3">
                                         <rect key="frame" x="0.0" y="44" width="414" height="679"/>
                                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                         <viewLayoutGuide key="safeArea" id="yFp-fI-j90"/>
@@ -43,18 +43,33 @@
                                     <constraint firstItem="TTr-Fc-4xZ" firstAttribute="leading" secondItem="Jjd-iw-cQU" secondAttribute="leading" constant="20" id="uRm-PD-3uu"/>
                                 </constraints>
                             </stackView>
-                            <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="7Dr-Of-dKO">
-                                <rect key="frame" x="188.5" y="504" width="37" height="37"/>
-                            </activityIndicatorView>
+                            <stackView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="1ZS-1y-ceX">
+                                <rect key="frame" x="178.5" y="472.5" width="57" height="20"/>
+                                <subviews>
+                                    <activityIndicatorView hidden="YES" opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" hidesWhenStopped="YES" style="large" translatesAutoresizingMaskIntoConstraints="NO" id="7Dr-Of-dKO">
+                                        <rect key="frame" x="0.0" y="0.0" width="37" height="20"/>
+                                    </activityIndicatorView>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9Hy-NC-llh">
+                                        <rect key="frame" x="37" y="0.0" width="20" height="20"/>
+                                        <constraints>
+                                            <constraint firstAttribute="width" constant="20" id="YNi-2U-xpm"/>
+                                            <constraint firstAttribute="height" constant="20" id="ixM-Vq-L2M"/>
+                                        </constraints>
+                                        <state key="normal" image="cancel">
+                                            <color key="titleColor" white="0.33333333333333331" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        </state>
+                                    </button>
+                                </subviews>
+                            </stackView>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
-                            <constraint firstItem="7Dr-Of-dKO" firstAttribute="centerX" secondItem="4nd-AI-EM3" secondAttribute="centerX" id="1ce-qh-aXH"/>
                             <constraint firstItem="9Zl-Xc-nyW" firstAttribute="bottom" secondItem="Jjd-iw-cQU" secondAttribute="bottom" id="2x8-YL-kPc"/>
                             <constraint firstItem="Jjd-iw-cQU" firstAttribute="leading" secondItem="v3w-K9-wf6" secondAttribute="leading" id="68K-bm-WlZ"/>
                             <constraint firstItem="f8d-ol-lFT" firstAttribute="top" secondItem="9Zl-Xc-nyW" secondAttribute="top" constant="10" id="YPb-b1-zwv"/>
+                            <constraint firstItem="1ZS-1y-ceX" firstAttribute="centerY" secondItem="4nd-AI-EM3" secondAttribute="centerY" constant="-40" id="c1n-jq-KwJ"/>
+                            <constraint firstItem="1ZS-1y-ceX" firstAttribute="centerX" secondItem="4nd-AI-EM3" secondAttribute="centerX" id="ehi-ms-X7b"/>
                             <constraint firstItem="Jjd-iw-cQU" firstAttribute="top" secondItem="f8d-ol-lFT" secondAttribute="bottom" constant="10" id="jdC-Tw-ImH"/>
-                            <constraint firstItem="7Dr-Of-dKO" firstAttribute="centerY" secondItem="4nd-AI-EM3" secondAttribute="centerY" id="lON-1z-EeR"/>
                             <constraint firstItem="9Zl-Xc-nyW" firstAttribute="trailing" secondItem="Jjd-iw-cQU" secondAttribute="trailing" id="pDu-9Z-nkU"/>
                             <constraint firstItem="f8d-ol-lFT" firstAttribute="centerX" secondItem="v3w-K9-wf6" secondAttribute="centerX" id="pZ3-rd-aWz"/>
                         </constraints>
@@ -64,6 +79,7 @@
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
                         <outlet property="activityIndicator" destination="7Dr-Of-dKO" id="akM-Nv-0UP"/>
+                        <outlet property="cancelRepositoryRetrievingButton" destination="9Hy-NC-llh" id="LLk-6M-EWU"/>
                         <outlet property="searchTextField" destination="TTr-Fc-4xZ" id="TcU-fE-4kA"/>
                         <outlet property="segmentedControl" destination="f8d-ol-lFT" id="FKX-4D-NxG"/>
                         <outlet property="tableView" destination="4nd-AI-EM3" id="nTS-B9-iBW"/>
@@ -74,4 +90,7 @@
             <point key="canvasLocation" x="-130.43478260869566" y="119.86607142857142"/>
         </scene>
     </scenes>
+    <resources>
+        <image name="cancel" width="512" height="512"/>
+    </resources>
 </document>

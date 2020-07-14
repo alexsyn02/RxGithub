@@ -26,15 +26,21 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Description" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="JSb-YZ-t9y">
-                                <rect key="frame" x="0.0" y="64.5" width="397" height="20.5"/>
+                                <rect key="frame" x="0.0" y="43.5" width="397" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Score" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8Ez-rl-xXy">
-                                <rect key="frame" x="0.0" y="128.5" width="397" height="20.5"/>
+                                <rect key="frame" x="0.0" y="87.5" width="397" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Viewed" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wYZ-54-Prt">
+                                <rect key="frame" x="0.0" y="131" width="397" height="18"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="15"/>
+                                <color key="textColor" systemColor="systemIndigoColor" red="0.34509803919999998" green="0.33725490200000002" blue="0.83921568629999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <nil key="highlightedColor"/>
                             </label>
                         </subviews>
@@ -52,6 +58,7 @@
                 <outlet property="descriptionLabel" destination="JSb-YZ-t9y" id="OsL-Te-tA2"/>
                 <outlet property="fullNameLabel" destination="GIx-NL-5oR" id="SeI-c9-UnJ"/>
                 <outlet property="scoreLabel" destination="8Ez-rl-xXy" id="6DT-Kd-ugo"/>
+                <outlet property="viewedLabel" destination="wYZ-54-Prt" id="hxz-2q-XjF"/>
             </connections>
             <point key="canvasLocation" x="77.536231884057983" y="177.79017857142856"/>
         </tableViewCell>

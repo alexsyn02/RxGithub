@@ -13,6 +13,7 @@ class RepositoryCell: VMTableCell {
     @IBOutlet private var fullNameLabel: UILabel!
     @IBOutlet private var descriptionLabel: UILabel!
     @IBOutlet private var scoreLabel: UILabel!
+    @IBOutlet private var viewedLabel: UILabel!
     
     private var vm: RepositoryCellVM { viewModel as! RepositoryCellVM }
     
@@ -33,6 +34,11 @@ class RepositoryCell: VMTableCell {
         
         vm.score
             .drive(scoreLabel.rx.text)
+            .disposed(by: bag)
+        
+        vm.isViewed
+            .map { !$0 }
+            .drive(viewedLabel.rx.isHidden)
             .disposed(by: bag)
     }
 }

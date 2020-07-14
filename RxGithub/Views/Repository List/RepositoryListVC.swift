@@ -15,6 +15,7 @@ class RepositoryListVC: VMVC {
     @IBOutlet private var searchTextField: UITextField!
     @IBOutlet private var tableView: UITableView!
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
+    @IBOutlet private var cancelRepositoryRetrievingButton: UIButton!
     
     private var vm: RepositoryListVM { viewModel as! RepositoryListVM }
     
@@ -53,20 +54,6 @@ class RepositoryListVC: VMVC {
     }
     
     private func bindViewModel() {
-        let query = searchTextField.rx
-            .controlEvent(.editingChanged)
-            .asDriver()
-            .withLatestFrom(searchTextField.rx.text.orEmpty.asDriver())
-        
-        let itemSelected = tableView.rx.itemSelected
-            .asDriver()
-        
-        itemSelected
-            .drive(onNext: { [weak self] indexPath in
-                self?.tableView.deselectRow(at: indexPath, animated: true)
-            })
-            .disposed(by: bag)
-        
         Driver.combineLatest(tableView.rx.contentOffset.asDriver(), isLoadingRepositoriesRelay.asDriver())
             .filter { [weak self] offset, isLoading in
                 let contentSizeHeight = (self?.tableView.contentSize ?? .zero).height
@@ -79,15 +66,35 @@ class RepositoryListVC: VMVC {
         .drive(isLoadingRepositoriesRelay)
         .disposed(by: bag)
         
+        let query = searchTextField.rx
+            .controlEvent(.editingChanged)
+            .asDriver()
+            .withLatestFrom(searchTextField.rx.text.orEmpty.asDriver())
+        
         let loadMoreRepositories = isLoadingRepositoriesRelay
             .asDriver()
             .filter { $0 }
             .map { _ in () }
         
+        let itemSelected = tableView.rx.itemSelected
+            .asDriver()
+        
+        itemSelected
+            .drive(onNext: { [weak self] indexPath in
+                self?.tableView.deselectRow(at: indexPath, animated: true)
+            })
+            .disposed(by: bag)
+        
+        let selectedSearchType = segmentedControl.rx
+            .selectedSegmentIndex
+            .asDriver()
+            .map { SearchRepository.SearchType(rawValue: $0)! }
+        
         let input = RepositoryListVM.Input(searchQuery: query,
                                            loadMoreRepositories: loadMoreRepositories,
+                                           cancelLoadMoreRepositories: cancelRepositoryRetrievingButton.rx.tap.asDriver(),
                                            repositorySelectedAt: itemSelected,
-                                           segmentedControlIndex: segmentedControl.rx.selectedSegmentIndex.asDriver(),
+                                           selectedSearchType: selectedSearchType,
                                            onLogout: logoutSubject.asDriver(onErrorJustReturn: ()))
         
         let output = vm.transform(input)
@@ -102,6 +109,11 @@ class RepositoryListVC: VMVC {
             .debounce(.milliseconds(500))
             .map { false }
             .drive(isLoadingRepositoriesRelay)
+            .disposed(by: bag)
+        
+        output.isLoading
+            .map { !$0 }
+            .drive(cancelRepositoryRetrievingButton.rx.isHidden)
             .disposed(by: bag)
         
         output.isLoading

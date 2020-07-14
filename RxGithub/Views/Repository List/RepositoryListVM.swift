@@ -15,8 +15,9 @@ class RepositoryListVM: VMInputOutputProtocol {
     struct Input {
         let searchQuery: Driver<String>
         let loadMoreRepositories: Driver<()>
+        let cancelLoadMoreRepositories: Driver<()>
         let repositorySelectedAt: Driver<IndexPath>
-        let segmentedControlIndex: Driver<Int>
+        let selectedSearchType: Driver<SearchRepository.SearchType>
         let onLogout: Driver<()>
     }
     
@@ -26,9 +27,10 @@ class RepositoryListVM: VMInputOutputProtocol {
         let isLoading: Driver<Bool>
     }
     
-    private let repositoriesRelay = BehaviorRelay<[Repository]>(value: [])
-    private let searchingPageRelay = BehaviorRelay<Int>(value: 1)
+    private let selectedSearchTypeRelay = BehaviorRelay<SearchRepository.SearchType>(value: .search)
     private let searchQueryRelay = BehaviorRelay<String>(value: "")
+    private let searchingPageRelay = BehaviorRelay<Int>(value: 1)
+    private let repositoriesRelay = BehaviorRelay<[Repository]>(value: [])
     
     private let loader = ActivityIndicator()
     private var bag = DisposeBag()
@@ -37,7 +39,23 @@ class RepositoryListVM: VMInputOutputProtocol {
     
     func transform(_ input: RepositoryListVM.Input) -> RepositoryListVM.Output {
         
-//        fetchRecentRepositories()
+        input.selectedSearchType
+            .drive(selectedSearchTypeRelay)
+            .disposed(by: bag)
+        
+        selectedSearchTypeRelay
+            .bind(onNext: { [weak self] _ in
+                guard let self = self else { return }
+                self.searchingPageRelay.accept(1)
+                self.searchQueryRelay.accept(self.searchQueryRelay.value)
+            })
+            .disposed(by: bag)
+        
+        input.cancelLoadMoreRepositories
+            .drive(onNext: { _ in
+                TasksService.shared.cancelAllRequests()
+            })
+            .disposed(by: bag)
         
         input.searchQuery
             .map { $0.count <= 30 ? $0 : "\($0[$0.startIndex..<$0.index($0.startIndex, offsetBy: 30)])" }
@@ -51,6 +69,8 @@ class RepositoryListVM: VMInputOutputProtocol {
             .skip(1)
             .asDriver(onErrorJustReturn: "")
             .filter { $0.isEmpty }
+            .withLatestFrom(selectedSearchTypeRelay.asDriver())
+            .filter { $0 == .search }
             .map { _ in [Repository]() }
             .drive(repositoriesRelay)
             .disposed(by: bag)
@@ -58,13 +78,14 @@ class RepositoryListVM: VMInputOutputProtocol {
         let searchQuery = searchQueryRelay
             .skip(1)
             .asDriver(onErrorJustReturn: "")
-            .filter { !$0.isEmpty }
         
         let firstResponse = searchRepositories(searchQuery: searchQuery)
         let secondResponse = searchRepositories(searchQuery: searchQuery, isSecondRequest: true)
             
         input.loadMoreRepositories
-            .drive(onNext: { [weak self] _ in
+            .withLatestFrom(selectedSearchTypeRelay.asDriver())
+            .filter { $0 == .search }
+            .drive(onNext: { [weak self] type in
                 guard let self = self else { return }
                 
                 print("load more with current search page: \(self.searchingPageRelay.value)")
@@ -83,26 +104,45 @@ class RepositoryListVM: VMInputOutputProtocol {
             .disposed(by: bag)
         
         let retrievedRepositories = Driver.zip(firstResponse, secondResponse) { $0 + $1 }
+            .withLatestFrom(selectedSearchTypeRelay.asDriver()) { [weak self] retrievedRepositories, selectedSearchType -> [Repository] in
+                let viewedRepositories = self?.fetchRecentRepositories() ?? []
+                
+                if selectedSearchType == .search {
+                    retrievedRepositories
+                        .forEach { $0.isViewed = viewedRepositories.contains($0) }
+                }
+                
+                return retrievedRepositories
+        }
         
         retrievedRepositories
             .drive(onNext: { [weak self] repositories in
-                let repositoriesRealm = repositories.map { RepositoryRealm(repository: $0) }
-                
-                do {
-                    try self?.realm.write {
-                        self?.realm.add(repositoriesRealm)
-                    }
-                } catch {
-                    print(error.localizedDescription)
+                repositories
+                    .map { RepositoryRealm(repository: $0) }
+                    .forEach { repository in
+                        do {
+                            try self?.realm.write {
+                                if let localRepository = self?.realm.object(ofType: RepositoryRealm.self, forPrimaryKey: repository.id) {
+                                    self?.realm.delete(localRepository)
+                                }
+                                self?.realm.add(repository)
+                            }
+                        } catch {
+                            print(error.localizedDescription)
+                        }
                 }
             })
             .disposed(by: bag)
         
         retrievedRepositories
-            .withLatestFrom(Driver.combineLatest(repositoriesRelay.asDriver(), searchingPageRelay.asDriver())) { newRepositories, currentRepositoriesTuple in
-                let (currentRepositories, page) = currentRepositoriesTuple
+            .withLatestFrom(Driver.combineLatest(repositoriesRelay.asDriver(), searchingPageRelay.asDriver(), selectedSearchTypeRelay.asDriver())) { newRepositories, currentRepositoriesTuple in
+                let (currentRepositories, page, selectedSearchType) = currentRepositoriesTuple
                 
-                return page == 0 ? newRepositories : (currentRepositories + newRepositories)
+                if page == 1 || selectedSearchType == .recent {
+                    return newRepositories
+                }
+                
+                return currentRepositories + newRepositories
             }
             .drive(repositoriesRelay)
             .disposed(by: bag)
@@ -135,32 +175,52 @@ class RepositoryListVM: VMInputOutputProtocol {
                       isLoading: loader.asDriver())
     }
     
-    private func fetchRecentRepositories() {
-        let localRepositories: [Repository] = realm.objects(RepositoryRealm.self)
+    private func fetchRecentRepositories(predicate: NSPredicate? = nil) -> [Repository] {
+        let repositories: Results<RepositoryRealm>
+        
+        if let predicate = predicate {
+            repositories = realm.objects(RepositoryRealm.self)
+                .filter(predicate)
+        } else {
+            repositories = realm.objects(RepositoryRealm.self)
+        }
+        
+        return repositories
             .map { Repository(repositoryRealm: $0) }
-        repositoriesRelay.accept(localRepositories)
     }
     
     private func searchRepositories(searchQuery: Driver<String>, isSecondRequest: Bool = false) -> Driver<[Repository]> {
-        searchQuery
-            .withLatestFrom(searchingPageRelay.asDriver()) { ($0, $1) }
-            .debounce(.seconds(1))
-            .flatMap { [weak self] tuple -> Driver<[Repository]> in
-                guard let self = self else { return .empty() }
-                
-                let (query, page) = tuple
-                
-                guard !query.isEmpty else { return .just([]) }
-                
-                return GithubService.shared
-                    .searchRepositories(query: query, page: !isSecondRequest ? page : (page + 1))
-                    .trackActivity(self.loader)
-                    .asDriver { error in
-                        Router.shared.showAlert(error: error)
-                        return .empty()
+        Driver.combineLatest(searchQuery, searchingPageRelay.asDriver(), selectedSearchTypeRelay.asDriver().distinctUntilChanged()) {
+            SearchRepository(query: $0, page: $1, type: $2)
+        }
+        .debounce(.seconds(1))
+        .flatMap { [weak self] model -> Driver<[Repository]> in
+            guard let self = self else { return .empty() }
+            
+            print(model.type)
+            
+            if model.type == .recent {
+                if isSecondRequest {
+                    return .just([])
+                } else {
+                    let predicate: NSPredicate? = !model.query.isEmpty ? NSPredicate(format: "fullName contains %@", model.query) : nil
+                    return .just(self.fetchRecentRepositories(predicate: predicate))
                 }
-                .map { $0.items }
-                .asSharedSequence()
+            } else if model.query.isEmpty {
+                return .just([])
+            }
+            
+            return GithubService.shared
+                .searchRepositories(query: model.query, page: !isSecondRequest ? model.page : (model.page + 1))
+                .trackActivity(self.loader)
+                .asDriver { error in
+                    if (error as NSError).code != NSURLErrorCancelled {
+                        Router.shared.showAlert(error: error)
+                    }
+                    return .empty()
+            }
+            .map { $0.items }
+            .asSharedSequence()
         }
     }
 }
