@@ -69,7 +69,6 @@ class LoginVM: VMInputOutputProtocol {
                 
                 KeychainService.set(username: self.usernameRelay.value, password: self.passwordRelay.value)
                 Router.shared.showRepositoryList()
-                print(user)
             })
             .disposed(by: bag)
         

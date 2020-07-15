@@ -10,6 +10,7 @@ import RxSwift
 import RxCocoa
 import RxSwiftUtilities
 import RealmSwift
+import RxDataSources
 
 class RepositoryListVM: VMInputOutputProtocol {
     struct Input {
@@ -18,11 +19,13 @@ class RepositoryListVM: VMInputOutputProtocol {
         let cancelLoadMoreRepositories: Driver<()>
         let repositorySelectedAt: Driver<IndexPath>
         let selectedSearchType: Driver<SearchRepository.SearchType>
+        let deletedLocalRepositoryIndexPath: Driver<IndexPath>
+        let repositoryMoved: Driver<ItemMovedEvent>
         let onLogout: Driver<()>
     }
     
     struct Output {
-        let repositories: Driver<[RepositoryCellVM]>
+        let repositories: Driver<[AnimatableSectionModel<String, RepositoryCellVM>]>
         let isRepositoriesLoaded: Driver<()>
         let isLoading: Driver<Bool>
     }
@@ -88,13 +91,46 @@ class RepositoryListVM: VMInputOutputProtocol {
             .drive(onNext: { [weak self] type in
                 guard let self = self else { return }
                 
-                print("load more with current search page: \(self.searchingPageRelay.value)")
-                
                 self.searchingPageRelay.accept(self.searchingPageRelay.value + 2)
                 self.searchQueryRelay.accept(self.searchQueryRelay.value)
                 
             })
             .disposed(by: bag)
+        
+        input.deletedLocalRepositoryIndexPath
+            .withLatestFrom(repositoriesRelay.asDriver()) { [weak self] deletedLocalRepositoryIndexPath, repositories -> [Repository] in
+                let deletedLocalRepositoryId = repositories[deletedLocalRepositoryIndexPath.row].id
+                
+                if let list = self?.realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0), let repositoryIndexToDelete = list.repositories.firstIndex(where: { $0.id == deletedLocalRepositoryId }) {
+                    self?.writeLocal(handler: {
+                        list.repositories.remove(at: repositoryIndexToDelete)
+                    })
+                }
+                
+                var newRepositories = repositories
+                newRepositories.remove(at: deletedLocalRepositoryIndexPath.row)
+                return newRepositories
+        }
+        .drive(repositoriesRelay)
+        .disposed(by: bag)
+        
+        input.repositoryMoved
+            .withLatestFrom(repositoriesRelay.asDriver()) { [weak self] repositoryMoved, repositories in
+                
+                let (sourceIndex, destinationIndex) = repositoryMoved
+                var newRepositories = repositories
+                newRepositories.swapAt(sourceIndex.row, destinationIndex.row)
+                
+                if let list = self?.realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0) {
+                    self?.writeLocal(handler: {
+                        list.repositories.swapAt(sourceIndex.row, destinationIndex.row)
+                    })
+                }
+                
+                return newRepositories
+        }
+        .drive(repositoriesRelay)
+        .disposed(by: bag)
         
         input.onLogout
             .drive(onNext: { _ in
@@ -109,40 +145,46 @@ class RepositoryListVM: VMInputOutputProtocol {
                 
                 if selectedSearchType == .search {
                     retrievedRepositories
-                        .forEach { $0.isViewed = viewedRepositories.contains($0) }
+                        .forEach { retrievedRepository in retrievedRepository.isViewed = viewedRepositories.contains(where: { retrievedRepository.id == $0.id }) }
                 }
                 
                 return retrievedRepositories
         }
         
         retrievedRepositories
-            .drive(onNext: { [weak self] repositories in
-                repositories
-                    .map { RepositoryRealm(repository: $0) }
-                    .forEach { repository in
-                        do {
-                            try self?.realm.write {
-                                if let localRepository = self?.realm.object(ofType: RepositoryRealm.self, forPrimaryKey: repository.id) {
-                                    self?.realm.delete(localRepository)
-                                }
-                                self?.realm.add(repository)
-                            }
-                        } catch {
-                            print(error.localizedDescription)
-                        }
+            .withLatestFrom(selectedSearchTypeRelay.asDriver()) { ($0, $1) }
+            .drive(onNext: { [weak self] (retrievedRepositories, searchType) in
+                guard searchType == .search else { return }
+                
+                let retrievedRepositories = retrievedRepositories.map { RepositoryRealm(repository: $0) }
+                
+                self?.writeLocal {
+                    let repositoryList = RepositoryArrayRealm()
+                    
+                    if let list = self?.realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0) {
+                        let currentRepositories = Array(list.repositories).filter { localRepository in !retrievedRepositories.contains(where: { localRepository.id == $0.id }) }
+                        repositoryList.repositories.append(objectsIn: currentRepositories + retrievedRepositories)
+                        self?.realm.add(repositoryList, update: .modified)
+                    } else {
+                        repositoryList.repositories.append(objectsIn: retrievedRepositories)
+                        self?.realm.create(RepositoryArrayRealm.self, value: repositoryList)
+                    }
                 }
             })
             .disposed(by: bag)
         
         retrievedRepositories
-            .withLatestFrom(Driver.combineLatest(repositoriesRelay.asDriver(), searchingPageRelay.asDriver(), selectedSearchTypeRelay.asDriver())) { newRepositories, currentRepositoriesTuple in
+            .withLatestFrom(Driver.combineLatest(repositoriesRelay.asDriver(), searchingPageRelay.asDriver(), selectedSearchTypeRelay.asDriver())) { retrievedRepositories, currentRepositoriesTuple in
                 let (currentRepositories, page, selectedSearchType) = currentRepositoriesTuple
                 
                 if page == 1 || selectedSearchType == .recent {
-                    return newRepositories
+                    return retrievedRepositories
                 }
                 
-                return currentRepositories + newRepositories
+                // MARK:- The following line (filter new repositories) is necessary as GitHub API may return duplicated repository during its pagination feature.
+                let retrievedRepositories = retrievedRepositories.filter { retrievedRepository in !currentRepositories.contains(where: { retrievedRepository.id == $0.id }) }
+                
+                return currentRepositories + retrievedRepositories
             }
             .drive(repositoriesRelay)
             .disposed(by: bag)
@@ -167,7 +209,7 @@ class RepositoryListVM: VMInputOutputProtocol {
             .disposed(by: bag)
         
         let outputRepositories = repositoriesRelay
-            .map { $0.map { RepositoryCellVM(repository: $0) } }
+            .map { [AnimatableSectionModel(model: "", items: $0.map { RepositoryCellVM(repository: $0) })] }
             .asDriver(onErrorJustReturn: [])
         
         return Output(repositories: outputRepositories,
@@ -176,17 +218,24 @@ class RepositoryListVM: VMInputOutputProtocol {
     }
     
     private func fetchRecentRepositories(predicate: NSPredicate? = nil) -> [Repository] {
-        let repositories: Results<RepositoryRealm>
-        
-        if let predicate = predicate {
-            repositories = realm.objects(RepositoryRealm.self)
-                .filter(predicate)
-        } else {
-            repositories = realm.objects(RepositoryRealm.self)
+        if let repositories = realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0)?.repositories {
+            if let predicate = predicate {
+                return repositories.filter(predicate).map { Repository(repositoryRealm: $0) }
+            }
+            return repositories.map { Repository(repositoryRealm: $0) }
         }
         
-        return repositories
-            .map { Repository(repositoryRealm: $0) }
+        return []
+    }
+    
+    private func writeLocal(handler: () -> ()) {
+        do {
+            try realm.write {
+                handler()
+            }
+        } catch {
+            Router.shared.showAlert(error: error)
+        }
     }
     
     private func searchRepositories(searchQuery: Driver<String>, isSecondRequest: Bool = false) -> Driver<[Repository]> {
@@ -196,8 +245,6 @@ class RepositoryListVM: VMInputOutputProtocol {
         .debounce(.seconds(1))
         .flatMap { [weak self] model -> Driver<[Repository]> in
             guard let self = self else { return .empty() }
-            
-            print(model.type)
             
             if model.type == .recent {
                 if isSecondRequest {

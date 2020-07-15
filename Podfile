@@ -10,6 +10,7 @@ target 'RxGithub' do
   pod 'RealmSwift'
   pod 'RxSwift'
   pod 'RxCocoa'
+  pod 'RxDataSources'
   pod 'RxSwiftUtilities'
   pod 'RxFlow'
   pod 'RxRealm'

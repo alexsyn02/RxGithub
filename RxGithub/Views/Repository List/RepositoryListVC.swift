@@ -8,6 +8,7 @@
 
 import RxSwift
 import RxCocoa
+import RxDataSources
 
 class RepositoryListVC: VMVC {
     
@@ -19,8 +20,20 @@ class RepositoryListVC: VMVC {
     
     private var vm: RepositoryListVM { viewModel as! RepositoryListVM }
     
-    private let logoutSubject = PublishSubject<()>()
     private let isLoadingRepositoriesRelay = BehaviorRelay<Bool>(value: false)
+    private let deleteLocalRepositoryIndexPathSubject = PublishSubject<IndexPath>()
+    private let logoutSubject = PublishSubject<()>()
+    
+    private var canEditRowAtIndexPath: TableViewSectionedDataSource<AnimatableSectionModel<String, RepositoryCellVM>>.CanEditRowAtIndexPath { { $0.sectionModels[$1.section].items[$1.row].isLocal } }
+    
+    private var canMoveRowAtIndexPath: TableViewSectionedDataSource<AnimatableSectionModel<String, RepositoryCellVM>>.CanMoveRowAtIndexPath { { [weak self] in (self?.tableView.isEditing ?? false) && $0.sectionModels[$1.section].items[$1.row].isLocal } }
+    
+    private lazy var dataSource = RxTableViewSectionedAnimatedDataSource<AnimatableSectionModel<String, RepositoryCellVM>>(configureCell: { dataSource, tableView, indexPath, viewModel in
+        let cell = tableView.dequeueReusableCell(withType: RepositoryCell.self, for: indexPath)
+        cell.viewModel = viewModel
+        return cell
+    }, canEditRowAtIndexPath: canEditRowAtIndexPath,
+       canMoveRowAtIndexPath: canMoveRowAtIndexPath)
     
     override static func instantiate() -> Self {
         return UIStoryboard.repositoryList.instantiateVC(with: self)
@@ -54,6 +67,9 @@ class RepositoryListVC: VMVC {
     }
     
     private func bindViewModel() {
+        tableView.rx.setDelegate(self)
+            .disposed(by: bag)
+        
         Driver.combineLatest(tableView.rx.contentOffset.asDriver(), isLoadingRepositoriesRelay.asDriver())
             .filter { [weak self] offset, isLoading in
                 let contentSizeHeight = (self?.tableView.contentSize ?? .zero).height
@@ -90,20 +106,31 @@ class RepositoryListVC: VMVC {
             .asDriver()
             .map { SearchRepository.SearchType(rawValue: $0)! }
         
+        selectedSearchType
+            .drive(onNext: { [weak self] selectedSearchType in
+                switch selectedSearchType {
+                case .search:
+                    self?.tableView.isEditing = false
+                case .recent:
+                    self?.tableView.isEditing = true
+                }
+            })
+            .disposed(by: bag)
+        
         let input = RepositoryListVM.Input(searchQuery: query,
                                            loadMoreRepositories: loadMoreRepositories,
                                            cancelLoadMoreRepositories: cancelRepositoryRetrievingButton.rx.tap.asDriver(),
                                            repositorySelectedAt: itemSelected,
                                            selectedSearchType: selectedSearchType,
+                                           deletedLocalRepositoryIndexPath: deleteLocalRepositoryIndexPathSubject.asDriver(onErrorJustReturn: IndexPath(row: 0, section: 0)),
+                                           repositoryMoved: tableView.rx.itemMoved.asDriver(),
                                            onLogout: logoutSubject.asDriver(onErrorJustReturn: ()))
         
         let output = vm.transform(input)
         
         output.repositories
-            .drive(tableView.rx.items(cellIdentifier: RepositoryCell.reuseIdentifier, cellType: RepositoryCell.self)) { _, model, cell in
-                cell.viewModel = model
-        }
-        .disposed(by: bag)
+            .drive(tableView.rx.items(dataSource: dataSource))
+            .disposed(by: bag)
         
         output.isRepositoriesLoaded
             .debounce(.milliseconds(500))
@@ -124,5 +151,15 @@ class RepositoryListVC: VMVC {
     @objc
     private func logOutTapped(_ sender: UIBarButtonItem) {
         logoutSubject.onNext(())
+    }
+}
+
+extension RepositoryListVC: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
+        let deleteAction = UIContextualAction(style: .destructive, title: "Delete") { [weak self] _, _, _ in
+            self?.deleteLocalRepositoryIndexPathSubject.onNext(indexPath)
+        }
+        
+        return UISwipeActionsConfiguration(actions: [deleteAction])
     }
 }
