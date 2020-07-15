@@ -10,7 +10,8 @@ import Foundation
 import RealmSwift
 
 class DatabaseService {
-    static var realm: Realm {
+    
+    static var realm: Realm? {
         get {
             do {
                 let realm = try Realm()
@@ -18,14 +19,14 @@ class DatabaseService {
             }
             catch {
                 NSLog("Could not access database: ", error.localizedDescription)
+                return nil
             }
-            return self.realm
         }
     }
 
-    static func write(realm: Realm = realm, writeClosure: (Error?) -> ()) {
+    static func write(realm: Realm? = realm, writeClosure: (Error?) -> ()) {
         do {
-            try realm.write {
+            try (realm ?? self.realm)?.write {
                 writeClosure(nil)
             }
         } catch {
@@ -35,7 +36,7 @@ class DatabaseService {
     }
     
     static var repositoryListRealm: RepositoryArrayRealm? {
-        realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0)
+        realm?.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0)
     }
     
     static func add(repositories: [Repository]) {
@@ -49,10 +50,10 @@ class DatabaseService {
                     let currentRepositories = Array(list.repositories)
                         .filter { localRepository in !retrievedRepositories.contains(where: { localRepository.id == $0.id }) }
                     repositoryList.repositories.append(objectsIn: currentRepositories + retrievedRepositories)
-                    realm.add(repositoryList, update: .modified)
+                    realm?.add(repositoryList, update: .modified)
                 } else {
                     repositoryList.repositories.append(objectsIn: retrievedRepositories)
-                    realm.create(RepositoryArrayRealm.self, value: repositoryList)
+                    realm?.create(RepositoryArrayRealm.self, value: repositoryList)
                 }
             }
         }

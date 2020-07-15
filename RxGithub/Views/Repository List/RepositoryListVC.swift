@@ -18,7 +18,7 @@ class RepositoryListVC: VMVC {
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
     @IBOutlet private var cancelRepositoryRetrievingButton: UIButton!
     
-    private var vm: RepositoryListVM { viewModel as! RepositoryListVM }
+    private var vm: RepositoryListVM? { viewModel as? RepositoryListVM }
     
     private let isLoadingRepositoriesRelay = BehaviorRelay<Bool>(value: false)
     private let deleteLocalRepositoryIndexPathSubject = PublishSubject<IndexPath>()
@@ -126,7 +126,16 @@ class RepositoryListVC: VMVC {
                                            repositoryMoved: tableView.rx.itemMoved.asDriver(),
                                            onLogout: logoutSubject.asDriver(onErrorJustReturn: ()))
         
-        let output = vm.transform(input)
+        bindOutput(with: input)
+    }
+    
+    @objc
+    private func logOutTapped(_ sender: UIBarButtonItem) {
+        logoutSubject.onNext(())
+    }
+    
+    private func bindOutput(with input: RepositoryListVM.Input) {
+        guard let output = vm?.transform(input) else { return }
         
         output.repositories
             .drive(tableView.rx.items(dataSource: dataSource))
@@ -146,11 +155,6 @@ class RepositoryListVC: VMVC {
         output.isLoading
             .drive(activityIndicator.rx.isAnimating)
             .disposed(by: bag)
-    }
-    
-    @objc
-    private func logOutTapped(_ sender: UIBarButtonItem) {
-        logoutSubject.onNext(())
     }
 }
 

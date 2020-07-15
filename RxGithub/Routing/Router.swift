@@ -21,9 +21,8 @@ class Router {
     func makeVisible(windowScene: UIWindowScene) -> UIWindow {
         window = UIWindow(windowScene: windowScene)
         
-        let rootVC = LoginVC.instantiate() // UIStoryboard.login.instantiateVC(with: LoginVC.self)
-        let rootVM = LoginVM()
-        rootVC.viewModel = rootVM
+        let rootVC = LoginVC.instantiate()
+        rootVC.viewModel = LoginVM()
         rootNavigationVC = UINavigationController(rootViewController: rootVC)
         
         window.rootViewController = rootNavigationVC
@@ -93,15 +92,14 @@ class Router {
         var view = topViewController()?.view
         
         while view != nil && view?.superview != nil {
-            view = view!.superview
+            view = view?.superview
         }
         return view
     }
     
     func showRepositoryList() {
         let vc = RepositoryListVC.instantiate()
-        let vm = RepositoryListVM()
-        vc.viewModel = vm
+        vc.viewModel = RepositoryListVM()
         self.push(vc)
     }
 }

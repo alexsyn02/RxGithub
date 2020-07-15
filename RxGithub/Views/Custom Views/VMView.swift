@@ -35,10 +35,7 @@ class VMView: XibLoadedView {
     
     func unadvise() {
         bag = DisposeBag()
-        let views = subviews.compactMap { $0 as? VMView }
-        for view in views {
-            view.viewModel = nil
-        }
+        subviews.forEach { ($0 as? VMView)?.unadvise() }
     }
     
     // called to bind needed for view

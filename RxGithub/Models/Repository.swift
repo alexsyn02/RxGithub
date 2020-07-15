@@ -90,6 +90,7 @@ class RepositoryRealm: Object {
 }
 
 class RepositoryArrayRealm: Object {
+    @objc dynamic var id = 0
     dynamic var repositories = List<RepositoryRealm>()
     
     override class func primaryKey() -> String? {

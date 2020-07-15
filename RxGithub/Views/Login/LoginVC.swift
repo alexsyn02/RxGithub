@@ -21,11 +21,12 @@ class LoginVC: VMVC {
     @IBOutlet private var signInButton: MainButton!
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
     
-    private var vm: LoginVM { viewModel as! LoginVM }
     private let viewWillAppearSubject = PublishSubject<Void>()
     
+    private var vm: LoginVM? { viewModel as? LoginVM }
+    
     override static func instantiate() -> Self {
-        return UIStoryboard.login.instantiateVC(with: self)
+        UIStoryboard.login.instantiateVC(with: self)
     }
     
     override func viewDidLoad() {
@@ -60,7 +61,11 @@ class LoginVC: VMVC {
                                   onSignIn: signInButton.rx.tap.asDriver(),
                                   viewWillAppearSubject: viewWillAppearSubject.asDriver(onErrorJustReturn: ()))
         
-        let output = vm.transform(input)
+        bindOutput(with: input)
+    }
+    
+    private func bindOutput(with input: LoginVM.Input) {
+        guard let output = vm?.transform(input) else { return}
         
         output.isLoading
             .map { !$0 }

@@ -22,7 +22,7 @@ class RxViewModel: VMProtocol {
 }
 
 class ModelInitializableVM<Entity: Any>: RxViewModel {
-    var model: Entity!
+    var model: Entity
     
    required init(model: Entity) {
         self.model = model

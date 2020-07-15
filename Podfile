@@ -15,6 +15,5 @@ target 'RxGithub' do
   pod 'RxFlow'
   pod 'RxRealm'
   pod 'SnapKit'
-  pod 'SwiftyJSON'
 
 end

@@ -30,6 +30,7 @@ class XibLoadedView: UIView {
     func xibSetup() {
         let view = self.loadFromNib()
         self.addSubview(view)
+//        view.autoresizingMask = [.flexibleWidth, .flexibleLeftMargin, .flexibleRightMargin] // should be tested
         view.snp.makeConstraints { make -> Void in
             make.edges.equalTo(self)
         }

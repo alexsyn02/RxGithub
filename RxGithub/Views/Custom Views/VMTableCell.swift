@@ -56,10 +56,7 @@ class VMTableCell: UITableViewCell {
     // called to dispose binds needed for cell
     func unadvise() {
         bag = DisposeBag()
-        let views = subviews.compactMap { $0 as? VMView }
-        for view in views {
-            view.viewModel = nil
-        }
+        subviews.forEach { ($0 as? VMView)?.unadvise() }
     }
 }
 

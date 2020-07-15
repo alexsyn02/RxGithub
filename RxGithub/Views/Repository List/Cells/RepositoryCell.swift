@@ -15,7 +15,7 @@ class RepositoryCell: VMTableCell {
     @IBOutlet private var scoreLabel: UILabel!
     @IBOutlet private var viewedLabel: UILabel!
     
-    private var vm: RepositoryCellVM { viewModel as! RepositoryCellVM }
+    private var vm: RepositoryCellVM? { viewModel as? RepositoryCellVM }
     
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -24,19 +24,19 @@ class RepositoryCell: VMTableCell {
     override func advise() {
         super.advise()
         
-        vm.fullName
+        vm?.fullName
             .drive(fullNameLabel.rx.text)
             .disposed(by: bag)
         
-        vm.description
+        vm?.description
             .drive(descriptionLabel.rx.text)
             .disposed(by: bag)
         
-        vm.score
+        vm?.score
             .drive(scoreLabel.rx.text)
             .disposed(by: bag)
         
-        vm.isViewed
+        vm?.isViewed
             .map { !$0 }
             .drive(viewedLabel.rx.isHidden)
             .disposed(by: bag)
