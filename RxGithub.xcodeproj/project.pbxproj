@@ -25,6 +25,7 @@
 		BD4925FA24B8A7F900BECA1E /* RepositoryListVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4925F924B8A7F900BECA1E /* RepositoryListVC.swift */; };
 		BD4925FC24B8A7FF00BECA1E /* RepositoryListVC.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = BD4925FB24B8A7FF00BECA1E /* RepositoryListVC.storyboard */; };
 		BD4925FE24B8A80500BECA1E /* RepositoryListVM.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD4925FD24B8A80500BECA1E /* RepositoryListVM.swift */; };
+		BD7DFAF324BFA86400AA3BC2 /* DatabaseService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD7DFAF224BFA86400AA3BC2 /* DatabaseService.swift */; };
 		BD9CD92624BCCBC2005A2973 /* TasksService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD9CD92524BCCBC2005A2973 /* TasksService.swift */; };
 		BDA0250F24B84AC00001A31A /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA0250E24B84AC00001A31A /* AppDelegate.swift */; };
 		BDA0251124B84AC00001A31A /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = BDA0251024B84AC00001A31A /* SceneDelegate.swift */; };
@@ -64,6 +65,7 @@
 		BD4925F924B8A7F900BECA1E /* RepositoryListVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryListVC.swift; sourceTree = "<group>"; };
 		BD4925FB24B8A7FF00BECA1E /* RepositoryListVC.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = RepositoryListVC.storyboard; sourceTree = "<group>"; };
 		BD4925FD24B8A80500BECA1E /* RepositoryListVM.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepositoryListVM.swift; sourceTree = "<group>"; };
+		BD7DFAF224BFA86400AA3BC2 /* DatabaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseService.swift; sourceTree = "<group>"; };
 		BD9CD92524BCCBC2005A2973 /* TasksService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TasksService.swift; sourceTree = "<group>"; };
 		BDA0250B24B84AC00001A31A /* RxGithub.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RxGithub.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDA0250E24B84AC00001A31A /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -242,6 +244,7 @@
 				BDE2866A24BBEAB300E521AE /* API */,
 				BDE2866824BBE9AE00E521AE /* KeychainService.swift */,
 				BD9CD92524BCCBC2005A2973 /* TasksService.swift */,
+				BD7DFAF224BFA86400AA3BC2 /* DatabaseService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -394,6 +397,7 @@
 				BD4925FA24B8A7F900BECA1E /* RepositoryListVC.swift in Sources */,
 				BDE38D6A24BB178A001D1F53 /* VMTableCell.swift in Sources */,
 				BD4925E724B8889D00BECA1E /* LoginVM.swift in Sources */,
+				BD7DFAF324BFA86400AA3BC2 /* DatabaseService.swift in Sources */,
 				BDE38D7024BB26DF001D1F53 /* Double+Extensions.swift in Sources */,
 				BD4925EE24B88F5100BECA1E /* VMVC.swift in Sources */,
 				BD296C4124B8B82A00682993 /* UITableView+Extensions.swift in Sources */,

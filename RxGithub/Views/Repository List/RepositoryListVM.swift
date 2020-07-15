@@ -9,7 +9,6 @@
 import RxSwift
 import RxCocoa
 import RxSwiftUtilities
-import RealmSwift
 import RxDataSources
 
 class RepositoryListVM: VMInputOutputProtocol {
@@ -37,8 +36,6 @@ class RepositoryListVM: VMInputOutputProtocol {
     
     private let loader = ActivityIndicator()
     private var bag = DisposeBag()
-    
-    private let realm = try! Realm()
     
     func transform(_ input: RepositoryListVM.Input) -> RepositoryListVM.Output {
         
@@ -98,14 +95,10 @@ class RepositoryListVM: VMInputOutputProtocol {
             .disposed(by: bag)
         
         input.deletedLocalRepositoryIndexPath
-            .withLatestFrom(repositoriesRelay.asDriver()) { [weak self] deletedLocalRepositoryIndexPath, repositories -> [Repository] in
+            .withLatestFrom(repositoriesRelay.asDriver()) { deletedLocalRepositoryIndexPath, repositories -> [Repository] in
                 let deletedLocalRepositoryId = repositories[deletedLocalRepositoryIndexPath.row].id
                 
-                if let list = self?.realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0), let repositoryIndexToDelete = list.repositories.firstIndex(where: { $0.id == deletedLocalRepositoryId }) {
-                    self?.writeLocal(handler: {
-                        list.repositories.remove(at: repositoryIndexToDelete)
-                    })
-                }
+                DatabaseService.deleteRepositoryWith(id: deletedLocalRepositoryId)
                 
                 var newRepositories = repositories
                 newRepositories.remove(at: deletedLocalRepositoryIndexPath.row)
@@ -115,17 +108,13 @@ class RepositoryListVM: VMInputOutputProtocol {
         .disposed(by: bag)
         
         input.repositoryMoved
-            .withLatestFrom(repositoriesRelay.asDriver()) { [weak self] repositoryMoved, repositories in
+            .withLatestFrom(repositoriesRelay.asDriver()) { repositoryMoved, repositories in
                 
                 let (sourceIndex, destinationIndex) = repositoryMoved
                 var newRepositories = repositories
                 newRepositories.swapAt(sourceIndex.row, destinationIndex.row)
                 
-                if let list = self?.realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0) {
-                    self?.writeLocal(handler: {
-                        list.repositories.swapAt(sourceIndex.row, destinationIndex.row)
-                    })
-                }
+                DatabaseService.swapRepositories(startIndex: sourceIndex.row, endIndex: destinationIndex.row)
                 
                 return newRepositories
         }
@@ -153,23 +142,10 @@ class RepositoryListVM: VMInputOutputProtocol {
         
         retrievedRepositories
             .withLatestFrom(selectedSearchTypeRelay.asDriver()) { ($0, $1) }
-            .drive(onNext: { [weak self] (retrievedRepositories, searchType) in
+            .drive(onNext: { (retrievedRepositories, searchType) in
                 guard searchType == .search else { return }
                 
-                let retrievedRepositories = retrievedRepositories.map { RepositoryRealm(repository: $0) }
-                
-                self?.writeLocal {
-                    let repositoryList = RepositoryArrayRealm()
-                    
-                    if let list = self?.realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0) {
-                        let currentRepositories = Array(list.repositories).filter { localRepository in !retrievedRepositories.contains(where: { localRepository.id == $0.id }) }
-                        repositoryList.repositories.append(objectsIn: currentRepositories + retrievedRepositories)
-                        self?.realm.add(repositoryList, update: .modified)
-                    } else {
-                        repositoryList.repositories.append(objectsIn: retrievedRepositories)
-                        self?.realm.create(RepositoryArrayRealm.self, value: repositoryList)
-                    }
-                }
+                DatabaseService.add(repositories: retrievedRepositories)
             })
             .disposed(by: bag)
         
@@ -218,7 +194,7 @@ class RepositoryListVM: VMInputOutputProtocol {
     }
     
     private func fetchRecentRepositories(predicate: NSPredicate? = nil) -> [Repository] {
-        if let repositories = realm.object(ofType: RepositoryArrayRealm.self, forPrimaryKey: 0)?.repositories {
+        if let repositories = DatabaseService.repositoryListRealm?.repositories {
             if let predicate = predicate {
                 return repositories.filter(predicate).map { Repository(repositoryRealm: $0) }
             }
@@ -226,16 +202,6 @@ class RepositoryListVM: VMInputOutputProtocol {
         }
         
         return []
-    }
-    
-    private func writeLocal(handler: () -> ()) {
-        do {
-            try realm.write {
-                handler()
-            }
-        } catch {
-            Router.shared.showAlert(error: error)
-        }
     }
     
     private func searchRepositories(searchQuery: Driver<String>, isSecondRequest: Bool = false) -> Driver<[Repository]> {
